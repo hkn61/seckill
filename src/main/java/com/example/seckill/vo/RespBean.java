@@ -13,7 +13,7 @@ public class RespBean {
     private Object obj;
 
     public static RespBean success(){
-        return new RespBean(RespBeanEnum.SUCCESS.getCode(), RespBean.success().getMessage(),null);
+        return new RespBean(RespBeanEnum.SUCCESS.getCode(), RespBeanEnum.SUCCESS.getMessage(),null);
     }
 
     public static RespBean success(Object obj){

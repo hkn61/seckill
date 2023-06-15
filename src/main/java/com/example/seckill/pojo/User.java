@@ -1,5 +1,6 @@
 package com.example.seckill.pojo;
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -21,6 +22,7 @@ public class User implements Serializable {
 
     /** 用户ID，手机号码 **/
     @ApiModelProperty("用户ID，手机号码")
+    @TableId("id")
     private Long id;
 
     private String nickname;
