@@ -5,16 +5,19 @@ import com.example.seckill.exception.GlobalException;
 import com.example.seckill.pojo.User;
 import com.example.seckill.mapper.UserMapper;
 import com.example.seckill.service.IUserService;
+import com.example.seckill.utils.CookieUtil;
 import com.example.seckill.utils.MD5Util;
-import com.example.seckill.utils.ValidatorUtil;
+import com.example.seckill.utils.UUIDUtil;
 import com.example.seckill.vo.LoginVo;
 import com.example.seckill.vo.RespBean;
 import com.example.seckill.vo.RespBeanEnum;
-import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * 
@@ -22,6 +25,7 @@ import org.springframework.util.StringUtils;
  * @author hkn
  * @date 2023-06-13
  */
+@Slf4j
 @Service
 @Primary
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
@@ -29,7 +33,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private UserMapper userMapper;
 
     @Override
-    public RespBean doLogin(LoginVo loginVo){
+    public RespBean doLogin(LoginVo loginVo, HttpServletRequest request, HttpServletResponse response){
         String mobile = loginVo.getMobile();
         String password = loginVo.getPassword();
 
@@ -52,6 +56,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             throw new GlobalException(RespBeanEnum.LOGIN_ERROR);
         }
 
+        // generate cookie
+        String ticket = UUIDUtil.uuid();
+        request.getSession().setAttribute(ticket, user);
+        CookieUtil.setCookie(request, response, "userTicket", ticket);
         return RespBean.success();
     }
 }

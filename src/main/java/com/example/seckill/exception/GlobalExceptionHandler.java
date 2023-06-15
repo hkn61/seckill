@@ -22,6 +22,8 @@ public class GlobalExceptionHandler {
             respBean.setMessage("Parameter validation error: " + ex.getBindingResult().getAllErrors().get(0).getDefaultMessage());
             return respBean;
         }
-        return RespBean.error(RespBeanEnum.ERROR);
+        else {
+            return RespBean.error(RespBeanEnum.ERROR);
+        }
     }
 }

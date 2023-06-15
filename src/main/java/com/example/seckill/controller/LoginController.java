@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 @Controller // restcontroller will add response body to all methods by default, so it will return an object instead of redirect
 @RequestMapping("/login")
 @Slf4j
@@ -26,8 +29,8 @@ public class LoginController {
 
     @RequestMapping("/doLogin")
     @ResponseBody
-    public RespBean doLogin(@Valid LoginVo loginVo){
+    public RespBean doLogin(@Valid LoginVo loginVo, HttpServletRequest request, HttpServletResponse response){
 //        log.info("{}", loginVo);
-        return userService.doLogin(loginVo);
+        return userService.doLogin(loginVo, request, response);
     }
 }
