@@ -21,8 +21,9 @@ public class GoodsController {
     // redirect to the goods list page
     @RequestMapping("/toList")
     public String toList(HttpSession session, Model model, @CookieValue("userTicket") String ticket){
-//        log.info("ticket: ", ticket.getValue());
+        log.info("ticket: ", ticket);
 //        String t = ticket.getValue();
+//        ticket = "db085ab86a31438eaa9f414013cbb380";
         if(StringUtils.isEmpty(ticket)){
             return "login";
         }
