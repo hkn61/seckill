@@ -16,4 +16,7 @@ import jakarta.servlet.http.HttpServletResponse;
  */
 public interface IUserService extends IService<User> {
     RespBean doLogin(LoginVo loginVo, HttpServletRequest request, HttpServletResponse response);
+
+    // get user by cookie
+    User getUserByCookie(String userTicket, HttpServletRequest request, HttpServletResponse response);
 }

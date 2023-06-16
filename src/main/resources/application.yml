@@ -43,9 +43,8 @@ spring:
       connection-test-query: SELECT 1
 
 #  redis:
-#    host: 127.0.0.1
-#    port: 6379
-#    #    password: 123123
+#    #        password: hknredis
+#    requirepass: hknredis
 #    database: 0
 #    timeout: 10000ms
 #    lettuce:
@@ -56,6 +55,7 @@ spring:
 #        max-wait: 1000ms
 #        #?????????8
 #        max-idle: 200
+#        min-idle: 5
 
 
 
@@ -94,6 +94,23 @@ spring:
         max-interval: 10000ms
         #???????????2?0  ???10s ????20s ????40s
         multiplier: 1
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      requirepass: hknredis
+      database: 0
+      timeout: 10000ms
+      lettuce:
+        pool:
+          #????? ??8
+          max-active: 8
+          #????????
+          max-wait: 1000ms
+          #?????????8
+          max-idle: 200
+          min-idle: 5
+      password: hknredis
 
 
 #mybatis-plus
