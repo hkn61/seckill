@@ -51,5 +51,24 @@
                 LEFT JOIN t_seckill_goods AS sg ON g.id = sg.goods_id
 --         SELECT * FROM t_goods
     </select>
+    
+    <select id="findGoodsVoByGoodsId" resultMap="goodsVoResultMap" resultType="com.example.seckill.vo.GoodsVo">
+        SELECT
+            g.id,
+            g.goods_name,
+            g.goods_title,
+            g.goods_img,
+            g.goods_detail,
+            g.goods_price,
+            g.goods_stock,
+            sg.seckill_price,
+            sg.stock_count,
+            sg.start_date,
+            sg.end_date
+        FROM
+            t_goods g
+                LEFT JOIN t_seckill_goods AS sg ON g.id = sg.goods_id
+        WHERE g.id = #{goodsId}
+    </select>
 
 </mapper>

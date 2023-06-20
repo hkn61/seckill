@@ -17,4 +17,14 @@
         id, goods_id, seckill_price, stock_count, start_date, end_date
     </sql>
 
+    <select id="selectByGoodsId" resultMap="BaseResultMap" resultType="com.example.seckill.pojo.SeckillGoods">
+        SELECT * FROM t_seckill_goods WHERE goods_id = #{id}
+    </select>
+
+    <select id="updateStockByGoodsId" resultMap="BaseResultMap">
+        UPDATE t_seckill_goods
+        SET stock_count = #{newStock}
+        WHERE goods_id = #{id}
+    </select>
+
 </mapper>

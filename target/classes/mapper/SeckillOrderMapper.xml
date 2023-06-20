@@ -15,4 +15,13 @@
         id, user_id, order_id, goods_id
     </sql>
 
+    <insert id="insertSeckillOrder" parameterType="com.example.seckill.pojo.SeckillOrder">
+        INSERT INTO t_seckill_order
+        VALUES (#{id}, #{userId}, #{orderId}, #{goodsId})
+    </insert>
+
+    <select id="selectSeckillOrder" resultMap="BaseResultMap" resultType="com.example.seckill.pojo.SeckillOrder">
+        SELECT * FROM t_seckill_order WHERE user_id = #{id} AND goods_id = #{goodsId}
+    </select>
+
 </mapper>

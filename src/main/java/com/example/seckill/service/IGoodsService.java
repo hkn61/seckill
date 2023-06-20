@@ -16,4 +16,7 @@ public interface IGoodsService extends IService<Goods> {
 
     // get goods list
     List<GoodsVo> findGoodsVo();
+
+    // get goods detail
+    GoodsVo findGoodsVoByGoodsId(Long goodsId);
 }

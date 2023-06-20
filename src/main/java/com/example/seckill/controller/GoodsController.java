@@ -12,13 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpSession;
-import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -48,6 +46,33 @@ public class GoodsController {
         List<GoodsVo> goodsVo = goodsService.findGoodsVo();
         model.addAttribute("goodsList", goodsService.findGoodsVo());
         return "goodsList";
+    }
+
+    // redirect to the goods details page
+    @RequestMapping("/toDetail/{goodsId}")
+    public String toDetail(Model model, User user, @PathVariable Long goodsId){
+        model.addAttribute("user", user);
+        GoodsVo goodsVo = goodsService.findGoodsVoByGoodsId(goodsId);
+        Date startDate = goodsVo.getStartDate();
+        Date endDate = goodsVo.getEndDate();
+        Date nowDate = new Date();
+        int secKillStatus = 0;
+        int remainSeconds = 0;
+        if(nowDate.before(startDate)){ // not started yet
+            remainSeconds = (int) ((startDate.getTime() - nowDate.getTime()) / 1000);
+        }
+        else if(nowDate.after(endDate)){ // ended
+            secKillStatus = 2;
+            remainSeconds = -1;
+        }
+        else{
+            secKillStatus = 1;
+            remainSeconds = 0;
+        }
+        model.addAttribute("remainSeconds", remainSeconds);
+        model.addAttribute("secKillStatus", secKillStatus);
+        model.addAttribute("goods", goodsVo);
+        return "goodsDetail";
     }
 
 }

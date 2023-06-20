@@ -22,4 +22,14 @@
         id, user_id, goods_id, delivery_addr_id, goods_name, goods_count, goods_price, order_channel, status, create_date, pay_date
     </sql>
 
+    <insert id="insertOrder" parameterType="com.example.seckill.pojo.Order">
+        INSERT INTO t_order
+        VALUES (#{id}, #{userId}, #{goodsId}, #{deliveryAddrId}, #{goodsName}, #{goodsCount}, #{goodsPrice}, #{orderChannel}, #{status}, #{createDate}, #{payDate}
+               )
+    </insert>
+
+    <select id="selectOrder" resultMap="BaseResultMap" resultType="com.example.seckill.pojo.Order">
+        SELECT * FROM t_order WHERE user_id = #{id} AND goods_id = #{goodsId}
+    </select>
+
 </mapper>

@@ -11,4 +11,7 @@ import com.example.seckill.pojo.SeckillOrder;
  */
 public interface SeckillOrderMapper extends BaseMapper<SeckillOrder> {
 
+    void insertSeckillOrder(SeckillOrder seckillOrder);
+
+    SeckillOrder selectSeckillOrder(Long id, Long goodsId);
 }

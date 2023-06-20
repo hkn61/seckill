@@ -126,3 +126,7 @@ mybatis-plus:
 logging:
   level:
     com.example.sekilldemo.mapper: debug
+    logging:
+      level:
+        org:
+          thymeleaf=DEBUG:
