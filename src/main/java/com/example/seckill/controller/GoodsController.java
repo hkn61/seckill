@@ -29,6 +29,7 @@ public class GoodsController {
     private IGoodsService goodsService;
 
     // redirect to the goods list page
+    // mac throughput: QPS before optimization: ~1200/sec
     @RequestMapping("/toList")
     public String toList(Model model, User user){
 //        log.info("ticket: ", ticket);
