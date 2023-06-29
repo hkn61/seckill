@@ -9,15 +9,25 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpSession;
+import org.thymeleaf.context.IContext;
+import org.thymeleaf.context.IWebContext;
+import org.thymeleaf.context.WebContext;
+import org.thymeleaf.spring6.view.ThymeleafViewResolver;
+import org.thymeleaf.spring6.view.reactive.ThymeleafReactiveViewResolver;
+import org.thymeleaf.web.IWebExchange;
+import org.thymeleaf.web.servlet.JakartaServletWebApplication;
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Controller
@@ -27,11 +37,16 @@ public class GoodsController {
     private IUserService userService;
     @Autowired
     private IGoodsService goodsService;
+    @Autowired
+    private RedisTemplate redisTemplate;
+    @Autowired
+    private ThymeleafViewResolver thymeleafViewResolver;
 
     // redirect to the goods list page
     // mac throughput: QPS before optimization: ~1200/sec
-    @RequestMapping("/toList")
-    public String toList(Model model, User user){
+    @RequestMapping(value = "/toList", produces = "text/html;charset=utf-8")
+    @ResponseBody
+    public String toList(Model model, User user, IWebExchange webExchange, HttpServletRequest request, HttpServletResponse response){
 //        log.info("ticket: ", ticket);
 //        String t = ticket.getValue();
 //        ticket = "db085ab86a31438eaa9f414013cbb380";
@@ -43,15 +58,39 @@ public class GoodsController {
 //        if(user == null){
 //            return "login";
 //        }
+        // get the page from redis, if not null, return the page
+        ValueOperations valueOperations = redisTemplate.opsForValue();
+        String html = (String) valueOperations.get("goodsList");
+        if(!StringUtils.isEmpty(html)){
+            return html;
+        }
+
         model.addAttribute("user", user);
         List<GoodsVo> goodsVo = goodsService.findGoodsVo();
         model.addAttribute("goodsList", goodsService.findGoodsVo());
-        return "goodsList";
+
+        // if null, manually render the page, and save to redis
+        JakartaServletWebApplication jakartaServletWebApplication = JakartaServletWebApplication.buildApplication(request.getServletContext());
+        WebContext context = new WebContext(jakartaServletWebApplication.buildExchange(request, response), request.getLocale(), model.asMap());
+//        IContext context = new IContext();
+//        IWebContext ctx =new WebContext(request,response,request.getServletContext(),request.getLocale(),model.asMap());
+        html = thymeleafViewResolver.getTemplateEngine().process("goodsList", context);
+
+        if(!StringUtils.isEmpty(html)){
+            valueOperations.set("goodsList", html, 60, TimeUnit.SECONDS);
+        }
+        return html;
     }
 
     // redirect to the goods details page
-    @RequestMapping("/toDetail/{goodsId}")
-    public String toDetail(Model model, User user, @PathVariable Long goodsId){
+    @RequestMapping(value =  "/toDetail/{goodsId}", produces = "text/html;charset=utf-8")
+    @ResponseBody
+    public String toDetail(Model model, User user, @PathVariable Long goodsId, HttpServletRequest request, HttpServletResponse response){
+        ValueOperations valueOperations = redisTemplate.opsForValue();
+        String html = (String) valueOperations.get("goodsDetail:" + goodsId);
+        if(!StringUtils.isEmpty(html)){
+            return html;
+        }
         model.addAttribute("user", user);
         GoodsVo goodsVo = goodsService.findGoodsVoByGoodsId(goodsId);
         Date startDate = goodsVo.getStartDate();
@@ -73,7 +112,16 @@ public class GoodsController {
         model.addAttribute("remainSeconds", remainSeconds);
         model.addAttribute("secKillStatus", secKillStatus);
         model.addAttribute("goods", goodsVo);
-        return "goodsDetail";
+
+        // if null, manually render the page, and save to redis
+        JakartaServletWebApplication jakartaServletWebApplication = JakartaServletWebApplication.buildApplication(request.getServletContext());
+        WebContext context = new WebContext(jakartaServletWebApplication.buildExchange(request, response), request.getLocale(), model.asMap());
+        html = thymeleafViewResolver.getTemplateEngine().process("goodsDetail", context);
+
+        if(!StringUtils.isEmpty(html)){
+            valueOperations.set("goodsDetail:" + goodsId , html, 60, TimeUnit.SECONDS);
+        }
+        return html;
     }
 
 }

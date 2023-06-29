@@ -39,6 +39,7 @@ public class SeckillController {
     private OrderMapper orderMapper;
 
     // seckill
+    // QPS before optimization: 879
     @RequestMapping("/doSeckill")
     public String doSeckill(Model model, User user, Long goodsId){
         if(user == null){
