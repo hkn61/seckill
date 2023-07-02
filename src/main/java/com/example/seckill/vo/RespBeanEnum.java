@@ -15,6 +15,8 @@ public enum RespBeanEnum {
     LOGIN_ERROR(500210, "Invalid mobile or password"),
     MOBILE_ERROR(500211, "Invalid mobile format"),
     BIND_ERROR(500212, "Parameter validation error"),
+    MOBILE_NOT_EXIST(500213, "mobile number not exist"),
+    PASSWORD_UPDATE_FAIL(500214, "fail to update the password"),
     // seckill module
     EMPTY_STOCK(500500, "Insufficient stock"),
     REPEAT_ERROR(500501, "The purchase limit is 1"),

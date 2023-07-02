@@ -44,6 +44,7 @@ public class GoodsController {
 
     // redirect to the goods list page
     // mac throughput: QPS before optimization: ~1200/sec
+    //                 QPS before optimization: ~6000/sec // sometimes very low, need more tests
     @RequestMapping(value = "/toList", produces = "text/html;charset=utf-8")
     @ResponseBody
     public String toList(Model model, User user, IWebExchange webExchange, HttpServletRequest request, HttpServletResponse response){
