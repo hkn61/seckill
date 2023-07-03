@@ -11,6 +11,7 @@ import com.example.seckill.service.IOrderService;
 import com.example.seckill.service.ISeckillOrderService;
 import com.example.seckill.service.impl.SeckillOrderServiceImpl;
 import com.example.seckill.vo.GoodsVo;
+import com.example.seckill.vo.RespBean;
 import com.example.seckill.vo.RespBeanEnum;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Slf4j
 @Controller
@@ -40,8 +43,8 @@ public class SeckillController {
 
     // seckill
     // QPS before optimization: 879
-    @RequestMapping("/doSeckill")
-    public String doSeckill(Model model, User user, Long goodsId){
+    @RequestMapping("/doSeckill2")
+    public String doSeckill2(Model model, User user, Long goodsId){
         if(user == null){
             return "login";
         }
@@ -65,5 +68,31 @@ public class SeckillController {
         model.addAttribute("order", order);
         model.addAttribute("goods", goods);
         return "orderDetail";
+    }
+
+
+    @RequestMapping(value = "/doSeckill", method = RequestMethod.POST)
+    @ResponseBody
+    public RespBean doSeckill(Model model, User user, Long goodsId){
+        if(user == null){
+            return RespBean.error(RespBeanEnum.SESSION_ERROR);
+        }
+        GoodsVo goods = goodsService.findGoodsVoByGoodsId(goodsId);
+        if(goods.getStockCount() < 1){
+            model.addAttribute("errmsg", RespBeanEnum.EMPTY_STOCK.getMessage());
+            return RespBean.error(RespBeanEnum.EMPTY_STOCK);
+        }
+
+        // check whether ordered twice
+//        QueryWrapper<SeckillOrder> eq = new QueryWrapper<SeckillOrder>().eq("user_id", user.getId()).eq("goods_id", goodsId);
+//        SeckillOrder seckillOrder = seckillOrderService.getOne(new QueryWrapper<SeckillOrder>().eq("user_id", user.getId()).eq("goods_id", goodsId));
+        SeckillOrder seckillOrder = seckillOrderMapper.selectSeckillOrder(user.getId(), goodsId);
+        if(seckillOrder != null){
+            model.addAttribute("errmsg", RespBeanEnum.REPEAT_ERROR.getMessage());
+            return RespBean.error(RespBeanEnum.REPEAT_ERROR);
+        }
+        Order order = orderService.seckill(user, goods);
+//        Order order = orderMapper.selectOrder(user.getId(), goodsId);
+        return RespBean.success(order);
     }
 }

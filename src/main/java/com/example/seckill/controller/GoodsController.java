@@ -3,7 +3,9 @@ package com.example.seckill.controller;
 import com.example.seckill.pojo.User;
 import com.example.seckill.service.IGoodsService;
 import com.example.seckill.service.IUserService;
+import com.example.seckill.vo.DetailVo;
 import com.example.seckill.vo.GoodsVo;
+import com.example.seckill.vo.RespBean;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -83,10 +85,11 @@ public class GoodsController {
         return html;
     }
 
+
     // redirect to the goods details page
-    @RequestMapping(value =  "/toDetail/{goodsId}", produces = "text/html;charset=utf-8")
+    @RequestMapping(value =  "/toDetail2/{goodsId}", produces = "text/html;charset=utf-8")
     @ResponseBody
-    public String toDetail(Model model, User user, @PathVariable Long goodsId, HttpServletRequest request, HttpServletResponse response){
+    public String toDetail2(Model model, User user, @PathVariable Long goodsId, HttpServletRequest request, HttpServletResponse response){
         ValueOperations valueOperations = redisTemplate.opsForValue();
         String html = (String) valueOperations.get("goodsDetail:" + goodsId);
         if(!StringUtils.isEmpty(html)){
@@ -123,6 +126,36 @@ public class GoodsController {
             valueOperations.set("goodsDetail:" + goodsId , html, 60, TimeUnit.SECONDS);
         }
         return html;
+    }
+
+
+    @RequestMapping("/toDetail/{goodsId}")
+    @ResponseBody
+    public RespBean toDetail(Model model, User user, @PathVariable Long goodsId){
+        GoodsVo goodsVo = goodsService.findGoodsVoByGoodsId(goodsId);
+        Date startDate = goodsVo.getStartDate();
+        Date endDate = goodsVo.getEndDate();
+        Date nowDate = new Date();
+        int secKillStatus = 0;
+        int remainSeconds = 0;
+        if(nowDate.before(startDate)){ // not started yet
+            remainSeconds = (int) ((startDate.getTime() - nowDate.getTime()) / 1000);
+        }
+        else if(nowDate.after(endDate)){ // ended
+            secKillStatus = 2;
+            remainSeconds = -1;
+        }
+        else{
+            secKillStatus = 1;
+            remainSeconds = 0;
+        }
+
+        DetailVo detailVo = new DetailVo();
+        detailVo.setUser(user);
+        detailVo.setGoodsVo(goodsVo);
+        detailVo.setRemainSeconds(remainSeconds);
+        detailVo.setSeckillStatus(secKillStatus);
+        return RespBean.success(detailVo);
     }
 
 }

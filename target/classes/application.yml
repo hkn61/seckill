@@ -18,6 +18,18 @@ spring:
 #      #??h5?????????
 #      html-application-cache: true
 #    static-locations: classpath:/static/
+  resources:
+    add-mappings: true
+    cache:
+      cachecontrol:
+        max-age: 3600
+      chain:
+        cache: true
+        enabled: true
+        compressed: true
+        html-application-cache: true
+      static-locations: classpath:/static/
+
 
   thymeleaf:
     cache: false

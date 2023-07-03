@@ -17,9 +17,12 @@ public enum RespBeanEnum {
     BIND_ERROR(500212, "Parameter validation error"),
     MOBILE_NOT_EXIST(500213, "mobile number not exist"),
     PASSWORD_UPDATE_FAIL(500214, "fail to update the password"),
+    SESSION_ERROR(500215, "user does not exist"),
     // seckill module
     EMPTY_STOCK(500500, "Insufficient stock"),
     REPEAT_ERROR(500501, "The purchase limit is 1"),
+    // order module
+    ORDER_NOT_EXIST(500300, "order info not exist"),
     ;
     private final Integer code;
     private final String message;
