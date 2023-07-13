@@ -1,6 +1,8 @@
 package com.example.seckill.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.seckill.exception.GlobalException;
 import com.example.seckill.mapper.OrderMapper;
@@ -19,7 +21,9 @@ import com.example.seckill.vo.OrderDetailVo;
 import com.example.seckill.vo.RespBeanEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.Random;
@@ -46,8 +50,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     private SeckillOrderMapper seckillOrderMapper;
     @Autowired
     private IGoodsService goodsService;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     // seckill
+    @Transactional
     @Override
     public Order seckill(User user, GoodsVo goods) {
         // update stock
@@ -55,7 +62,30 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         SeckillGoods seckillGoods = seckillGoodsMapper.selectByGoodsId(goods.getId());
         int newStock = seckillGoods.getStockCount() - 1;
 //        seckillGoods.setStockCount(seckillGoods.getStockCount() - 1);
-        seckillGoodsMapper.updateStockByGoodsId(newStock, goods.getId());
+
+//        seckillGoodsMapper.updateStockByGoodsId(newStock, goods.getId());
+
+//        boolean seckillGoodsResult = seckillGoodsService.update(new UpdateWrapper<SeckillGoods>().set("stock_count",
+//                seckillGoods.getStockCount()).eq("id", seckillGoods.getId()).gt("stock_count", 0));
+
+//        boolean seckillGoodsResult = seckillGoodsService.update(new UpdateWrapper<SeckillGoods>()
+//                .setSql("stock_count = " + "stock_count-1")
+//                .eq("goods_id", goods.getId())
+//                .gt("stock_count", 0)
+//        );
+//        if (!seckillGoodsResult) {
+//            return null;
+//        }
+//
+//        if(seckillGoods.getStockCount() < 1){
+//            return null;
+//        }
+
+        int numRows = seckillGoodsMapper.updateStock(goods.getId());
+        if(numRows < 1){
+            return null;
+        }
+
         // generate new order
         Order order = new Order();
         order.setUserId(user.getId());
@@ -77,6 +107,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         seckillOrder.setGoodsId(goods.getId());
 //        seckillOrderService.save(seckillOrder);
         seckillOrderMapper.insertSeckillOrder(seckillOrder);
+        redisTemplate.opsForValue().set("order:" + user.getId() + ":" + goods.getId(), seckillOrder);
         return order;
     }
 

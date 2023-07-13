@@ -16,6 +16,7 @@ import com.example.seckill.vo.RespBeanEnum;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,9 +41,12 @@ public class SeckillController {
     private SeckillOrderMapper seckillOrderMapper;
     @Autowired
     private OrderMapper orderMapper;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     // seckill
     // QPS before optimization: 879
+    // QPS after optimization: 1300
     @RequestMapping("/doSeckill2")
     public String doSeckill2(Model model, User user, Long goodsId){
         if(user == null){
@@ -59,6 +63,7 @@ public class SeckillController {
 //        QueryWrapper<SeckillOrder> eq = new QueryWrapper<SeckillOrder>().eq("user_id", user.getId()).eq("goods_id", goodsId);
 //        SeckillOrder seckillOrder = seckillOrderService.getOne(new QueryWrapper<SeckillOrder>().eq("user_id", user.getId()).eq("goods_id", goodsId));
         SeckillOrder seckillOrder = seckillOrderMapper.selectSeckillOrder(user.getId(), goodsId);
+//        SeckillOrder seckillOrder = (SeckillOrder) redisTemplate.opsForValue().get("order:" + user.getId() + ":" + goodsId);
         if(seckillOrder != null){
             model.addAttribute("errmsg", RespBeanEnum.REPEAT_ERROR.getMessage());
             return "secKillFail";
@@ -73,22 +78,23 @@ public class SeckillController {
 
     @RequestMapping(value = "/doSeckill", method = RequestMethod.POST)
     @ResponseBody
-    public RespBean doSeckill(Model model, User user, Long goodsId){
+    public RespBean doSeckill(Model model, User user, Long goodsId) {
         if(user == null){
             return RespBean.error(RespBeanEnum.SESSION_ERROR);
         }
         GoodsVo goods = goodsService.findGoodsVoByGoodsId(goodsId);
         if(goods.getStockCount() < 1){
-            model.addAttribute("errmsg", RespBeanEnum.EMPTY_STOCK.getMessage());
+//            model.addAttribute("errmsg", RespBeanEnum.EMPTY_STOCK.getMessage());
             return RespBean.error(RespBeanEnum.EMPTY_STOCK);
         }
 
         // check whether ordered twice
 //        QueryWrapper<SeckillOrder> eq = new QueryWrapper<SeckillOrder>().eq("user_id", user.getId()).eq("goods_id", goodsId);
 //        SeckillOrder seckillOrder = seckillOrderService.getOne(new QueryWrapper<SeckillOrder>().eq("user_id", user.getId()).eq("goods_id", goodsId));
-        SeckillOrder seckillOrder = seckillOrderMapper.selectSeckillOrder(user.getId(), goodsId);
+//        SeckillOrder seckillOrder = seckillOrderMapper.selectSeckillOrder(user.getId(), goodsId);
+        SeckillOrder seckillOrder = (SeckillOrder) redisTemplate.opsForValue().get("order:" + user.getId() + ":" + goodsId);
         if(seckillOrder != null){
-            model.addAttribute("errmsg", RespBeanEnum.REPEAT_ERROR.getMessage());
+//            model.addAttribute("errmsg", RespBeanEnum.REPEAT_ERROR.getMessage());
             return RespBean.error(RespBeanEnum.REPEAT_ERROR);
         }
         Order order = orderService.seckill(user, goods);

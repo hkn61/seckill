@@ -27,4 +27,10 @@
         WHERE goods_id = #{id}
     </select>
 
+    <update id="updateStock">
+        UPDATE t_seckill_goods
+        SET stock_count = stock_count - 1
+        WHERE goods_id = #{id} AND stock_count > 0
+    </update>
+
 </mapper>

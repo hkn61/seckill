@@ -14,4 +14,6 @@ public interface SeckillGoodsMapper extends BaseMapper<SeckillGoods> {
     SeckillGoods selectByGoodsId(Long id);
 
     void updateStockByGoodsId(int newStock, Long id);
+
+    int updateStock(Long id);
 }
