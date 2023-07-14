@@ -36,4 +36,12 @@ public class UserController {
     public void mq(){
         mqSender.send("hello mq");
     }
+
+
+    // RabbitMQ fanout mode
+    @RequestMapping("/mq/fanout")
+    @ResponseBody
+    public void mq01(){
+        mqSender.send("hello mq fanout");
+    }
 }
