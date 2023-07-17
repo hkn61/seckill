@@ -3,16 +3,17 @@ package com.example.seckill.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.example.seckill.mapper.OrderMapper;
 import com.example.seckill.mapper.SeckillOrderMapper;
-import com.example.seckill.pojo.Order;
-import com.example.seckill.pojo.SeckillOrder;
-import com.example.seckill.pojo.User;
+import com.example.seckill.pojo.*;
+import com.example.seckill.rabbitmq.MQSender;
 import com.example.seckill.service.IGoodsService;
 import com.example.seckill.service.IOrderService;
 import com.example.seckill.service.ISeckillOrderService;
 import com.example.seckill.service.impl.SeckillOrderServiceImpl;
+import com.example.seckill.utils.JsonUtil;
 import com.example.seckill.vo.GoodsVo;
 import com.example.seckill.vo.RespBean;
 import com.example.seckill.vo.RespBeanEnum;
+import com.rabbitmq.tools.json.JSONUtil;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -26,7 +27,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Controller
@@ -48,6 +51,10 @@ public class SeckillController implements InitializingBean {
     private OrderMapper orderMapper;
     @Autowired
     private RedisTemplate redisTemplate;
+    @Autowired
+    private MQSender mqSender;
+
+    private Map<Long, Boolean> EmptyStockMap = new HashMap<>();
 
     // seckill
     // QPS before optimization: 879
@@ -95,15 +102,22 @@ public class SeckillController implements InitializingBean {
 //            model.addAttribute("errmsg", RespBeanEnum.REPEAT_ERROR.getMessage());
             return RespBean.error(RespBeanEnum.REPEAT_ERROR);
         }
+        // mark the stock, decrease the number of Redis access
+        if(EmptyStockMap.get(goodsId)){
+            return RespBean.error(RespBeanEnum.EMPTY_STOCK);
+        }
         // pre deduct the stock
         Long stock = valueOperations.decrement("seckillGoods:" + goodsId);
         if(stock < 0){
+            EmptyStockMap.put(goodsId, true);
             valueOperations.increment("seckillGoods:" + goodsId);
             return RespBean.error(RespBeanEnum.EMPTY_STOCK);
         }
 
-        Order order = orderService.seckill(user, goods);
-        return RespBean.success(order);
+//        Order order = orderService.seckill(user, goods);
+        SeckillMessage seckillMessage = new SeckillMessage(user, goodsId);
+        mqSender.sendSeckillMessage(JsonUtil.object2JsonStr(seckillMessage));
+        return RespBean.success(0);
 
 //        GoodsVo goods = goodsService.findGoodsVoByGoodsId(goodsId);
 //        if(goods.getStockCount() < 1){
@@ -136,6 +150,7 @@ public class SeckillController implements InitializingBean {
         }
         list.forEach(goodsVo -> {
             redisTemplate.opsForValue().set("seckillGoods:" + goodsVo.getId(), goodsVo.getStockCount());
+            EmptyStockMap.put(goodsVo.getId(), false);
         });
     }
 }
