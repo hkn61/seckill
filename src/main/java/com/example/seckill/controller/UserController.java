@@ -30,66 +30,66 @@ public class UserController {
     }
 
 
-    // test sending message to RabbitMQ
-    @RequestMapping("/mq")
-    @ResponseBody
-    public void mq(){
-        mqSender.send("hello mq");
-    }
-
-
-    // RabbitMQ fanout mode
-    @RequestMapping("/mq/fanout")
-    @ResponseBody
-    public void mq01(){
-        mqSender.send("hello mq fanout");
-    }
-
-
-    // RabbitMQ direct mode 1
-    @RequestMapping("/mq/direct01")
-    @ResponseBody
-    public void mq02(){
-        mqSender.send01("hello mq direct red");
-    }
-
-
-    // RabbitMQ direct mode 2
-    @RequestMapping("/mq/direct02")
-    @ResponseBody
-    public void mq03(){
-        mqSender.send02("hello mq direct green ");
-    }
-
-
-    // RabbitMQ topic mode 1
-    @RequestMapping("/mq/topic01")
-    @ResponseBody
-    public void mq04(){
-        mqSender.send03("hello mq topic queue 01 ");
-    }
-
-
-    // RabbitMQ topic mode 2
-    @RequestMapping("/mq/topic02")
-    @ResponseBody
-    public void mq05(){
-        mqSender.send04("hello mq topic queue 02 ");
-    }
-
-
-    // RabbitMQ topic mode 2
-    @RequestMapping("/mq/header01")
-    @ResponseBody
-    public void mq06(){
-        mqSender.send05("hello mq header 01 ");
-    }
-
-
-    // RabbitMQ topic mode 2
-    @RequestMapping("/mq/header02")
-    @ResponseBody
-    public void mq07(){
-        mqSender.send06("hello mq header 02 ");
-    }
+//    // test sending message to RabbitMQ
+//    @RequestMapping("/mq")
+//    @ResponseBody
+//    public void mq(){
+//        mqSender.send("hello mq");
+//    }
+//
+//
+//    // RabbitMQ fanout mode
+//    @RequestMapping("/mq/fanout")
+//    @ResponseBody
+//    public void mq01(){
+//        mqSender.send("hello mq fanout");
+//    }
+//
+//
+//    // RabbitMQ direct mode 1
+//    @RequestMapping("/mq/direct01")
+//    @ResponseBody
+//    public void mq02(){
+//        mqSender.send01("hello mq direct red");
+//    }
+//
+//
+//    // RabbitMQ direct mode 2
+//    @RequestMapping("/mq/direct02")
+//    @ResponseBody
+//    public void mq03(){
+//        mqSender.send02("hello mq direct green ");
+//    }
+//
+//
+//    // RabbitMQ topic mode 1
+//    @RequestMapping("/mq/topic01")
+//    @ResponseBody
+//    public void mq04(){
+//        mqSender.send03("hello mq topic queue 01 ");
+//    }
+//
+//
+//    // RabbitMQ topic mode 2
+//    @RequestMapping("/mq/topic02")
+//    @ResponseBody
+//    public void mq05(){
+//        mqSender.send04("hello mq topic queue 02 ");
+//    }
+//
+//
+//    // RabbitMQ topic mode 2
+//    @RequestMapping("/mq/header01")
+//    @ResponseBody
+//    public void mq06(){
+//        mqSender.send05("hello mq header 01 ");
+//    }
+//
+//
+//    // RabbitMQ topic mode 2
+//    @RequestMapping("/mq/header02")
+//    @ResponseBody
+//    public void mq07(){
+//        mqSender.send06("hello mq header 02 ");
+//    }
 }

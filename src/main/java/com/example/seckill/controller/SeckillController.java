@@ -141,6 +141,18 @@ public class SeckillController implements InitializingBean {
 
     }
 
+    // get seckill result
+    // orderId: success; -1: fail; 0: queuing
+    @RequestMapping(value = "/result", method = RequestMethod.GET)
+    @ResponseBody
+    public RespBean getResult(User user, Long goodsId){
+        if(user == null){
+            return RespBean.error(RespBeanEnum.SESSION_ERROR);
+        }
+        Long orderId = seckillOrderService.getResult(user, goodsId);
+        return RespBean.success(orderId);
+    }
+
     // initialize the system, load the goods stock to Redis
     @Override
     public void afterPropertiesSet() throws Exception {

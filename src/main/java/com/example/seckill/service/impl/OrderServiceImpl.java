@@ -22,6 +22,7 @@ import com.example.seckill.vo.RespBeanEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,6 +58,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     @Transactional
     @Override
     public Order seckill(User user, GoodsVo goods) {
+        ValueOperations valueOperations = redisTemplate.opsForValue();
         // update stock
 //        SeckillGoods seckillGoods = seckillGoodsService.getOne(new QueryWrapper<SeckillGoods>().eq("goods_id", goods.getId()));
         SeckillGoods seckillGoods = seckillGoodsMapper.selectByGoodsId(goods.getId());
@@ -82,7 +84,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
 //        }
 
         int numRows = seckillGoodsMapper.updateStock(goods.getId());
-        if(numRows < 1){
+//        if(numRows < 1){
+//            return null;
+//        }
+        if(seckillGoods.getStockCount() < 1){
+            valueOperations.set("isStockEmpty:" + seckillGoods.getGoodsId(), "0");
             return null;
         }
 
