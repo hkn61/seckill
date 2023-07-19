@@ -58,7 +58,8 @@ public class SeckillController implements InitializingBean {
 
     // seckill
     // QPS before optimization: 879
-    // QPS after optimization: 1300
+    // QPS after cache optimization: 1300
+    // QPS after MQ optimization: 2700
     @RequestMapping("/doSeckill2")
     public String doSeckill2(Model model, User user, Long goodsId){
         if(user == null){
