@@ -20,13 +20,16 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +56,8 @@ public class SeckillController implements InitializingBean {
     private RedisTemplate redisTemplate;
     @Autowired
     private MQSender mqSender;
+    @Autowired
+    private RedisScript<Long> script;
 
     private Map<Long, Boolean> EmptyStockMap = new HashMap<>();
 
@@ -89,14 +94,19 @@ public class SeckillController implements InitializingBean {
     }
 
 
-    @RequestMapping(value = "/doSeckill", method = RequestMethod.POST)
+    @RequestMapping(value = "/{path}/doSeckill", method = RequestMethod.POST)
     @ResponseBody
-    public RespBean doSeckill(Model model, User user, Long goodsId) {
+    public RespBean doSeckill(@PathVariable String path, User user, Long goodsId) {
         if(user == null){
             return RespBean.error(RespBeanEnum.SESSION_ERROR);
         }
 
         ValueOperations valueOperations = redisTemplate.opsForValue();
+        boolean check = orderService.checkPath(user, goodsId, path);
+        if(!check){
+            return RespBean.error(RespBeanEnum.REQUEST_ILLEGAL);
+        }
+
         // check if ordered twice
         SeckillOrder seckillOrder = (SeckillOrder) redisTemplate.opsForValue().get("order:" + user.getId() + ":" + goodsId);
         if(seckillOrder != null){
@@ -108,10 +118,12 @@ public class SeckillController implements InitializingBean {
             return RespBean.error(RespBeanEnum.EMPTY_STOCK);
         }
         // pre deduct the stock
-        Long stock = valueOperations.decrement("seckillGoods:" + goodsId);
+        // 如果一个用户同时秒杀，可能会出现redis库存-2，但数据库因为回滚只-1的情况
+//        Long stock = valueOperations.decrement("seckillGoods:" + goodsId);
+        Long stock = (Long) redisTemplate.execute(script, Collections.singletonList("seckillGoods:" + goodsId), Collections.EMPTY_LIST);
         if(stock < 0){
             EmptyStockMap.put(goodsId, true);
-            valueOperations.increment("seckillGoods:" + goodsId);
+//            valueOperations.increment("seckillGoods:" + goodsId);
             return RespBean.error(RespBeanEnum.EMPTY_STOCK);
         }
 
@@ -142,6 +154,7 @@ public class SeckillController implements InitializingBean {
 
     }
 
+
     // get seckill result
     // orderId: success; -1: fail; 0: queuing
     @RequestMapping(value = "/result", method = RequestMethod.GET)
@@ -153,6 +166,18 @@ public class SeckillController implements InitializingBean {
         Long orderId = seckillOrderService.getResult(user, goodsId);
         return RespBean.success(orderId);
     }
+
+
+    @RequestMapping(value = "/path", method = RequestMethod.GET)
+    @ResponseBody
+    public RespBean getPath(User user, Long goodsId){
+        if(user == null){
+            return RespBean.error(RespBeanEnum.SESSION_ERROR);
+        }
+        String str = orderService.createPath(user, goodsId);
+        return RespBean.success(str);
+    }
+
 
     // initialize the system, load the goods stock to Redis
     @Override

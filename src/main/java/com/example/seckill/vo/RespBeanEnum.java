@@ -21,6 +21,7 @@ public enum RespBeanEnum {
     // seckill module
     EMPTY_STOCK(500500, "Insufficient stock"),
     REPEAT_ERROR(500501, "The purchase limit is 1"),
+    REQUEST_ILLEGAL(500502, "Illegal request, please retry"),
     // order module
     ORDER_NOT_EXIST(500300, "order info not exist"),
     ;

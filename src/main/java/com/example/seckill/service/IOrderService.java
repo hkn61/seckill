@@ -18,4 +18,10 @@ public interface IOrderService extends IService<Order> {
     Order seckill(User user, GoodsVo goods);
 
     OrderDetailVo detail(Long orderId);
+
+    // get seckill path
+    String createPath(User user, Long goodsId);
+
+    // check seckill address
+    boolean checkPath(User user, Long goodsId, String path);
 }

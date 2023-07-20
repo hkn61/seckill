@@ -101,7 +101,7 @@ public class SeckillGoods implements Serializable {
 
     @Override
     public String toString() {
-        return "TSeckillGoods{" +
+        return "seckillGoods{" +
                 "id=" + id +
                 ", goodsId=" + goodsId +
                 ", seckillPrice=" + seckillPrice +

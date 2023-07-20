@@ -76,7 +76,7 @@ public class SeckillOrder implements Serializable {
 
     @Override
     public String toString() {
-        return "TSeckillOrder{" +
+        return "seckillOrder{" +
                 "id=" + id +
                 ", userId=" + userId +
                 ", orderId=" + orderId +
