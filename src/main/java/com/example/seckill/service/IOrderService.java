@@ -24,4 +24,7 @@ public interface IOrderService extends IService<Order> {
 
     // check seckill address
     boolean checkPath(User user, Long goodsId, String path);
+
+    // captcha validation
+    boolean checkCaptcha(User user, Long goodsId, String captcha);
 }

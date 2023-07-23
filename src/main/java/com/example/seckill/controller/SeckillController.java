@@ -1,6 +1,7 @@
 package com.example.seckill.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.example.seckill.config.AccessLimit;
+import com.example.seckill.exception.GlobalException;
 import com.example.seckill.mapper.OrderMapper;
 import com.example.seckill.mapper.SeckillOrderMapper;
 import com.example.seckill.pojo.*;
@@ -8,13 +9,14 @@ import com.example.seckill.rabbitmq.MQSender;
 import com.example.seckill.service.IGoodsService;
 import com.example.seckill.service.IOrderService;
 import com.example.seckill.service.ISeckillOrderService;
-import com.example.seckill.service.impl.SeckillOrderServiceImpl;
 import com.example.seckill.utils.JsonUtil;
 import com.example.seckill.vo.GoodsVo;
 import com.example.seckill.vo.RespBean;
 import com.example.seckill.vo.RespBeanEnum;
-import com.rabbitmq.tools.json.JSONUtil;
+import com.wf.captcha.ArithmeticCaptcha;
 import io.swagger.annotations.Api;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,10 +31,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Controller
@@ -168,14 +172,59 @@ public class SeckillController implements InitializingBean {
     }
 
 
+    @AccessLimit(second = 5, maxCount = 5, needLogin = true)
     @RequestMapping(value = "/path", method = RequestMethod.GET)
     @ResponseBody
-    public RespBean getPath(User user, Long goodsId){
+    public RespBean getPath(User user, Long goodsId, String captcha, HttpServletRequest request){
         if(user == null){
             return RespBean.error(RespBeanEnum.SESSION_ERROR);
         }
+
+//        ValueOperations valueOperations = redisTemplate.opsForValue();
+//
+//        // restrict access times, can access at most 5 times within 5 seconds
+//        String uri = request.getRequestURI();
+//        captcha = "0"; // ?????
+//        Integer count = (Integer) valueOperations.get(uri + ":" + user.getId());
+//        if(count == null){
+//            valueOperations.set(uri + ":" + user.getId(), 1, 5, TimeUnit.SECONDS);
+//        }
+//        else if(count < 5){
+//            valueOperations.increment(uri + ":" + user.getId());
+//        }
+//        else{
+//            return RespBean.error(RespBeanEnum.ACCESS_LIMIT_REACHED);
+//        }
+
+        boolean check = orderService.checkCaptcha(user, goodsId, captcha);
+        if(!check){
+            return RespBean.error(RespBeanEnum.ERROR_CAPTCHA);
+        }
         String str = orderService.createPath(user, goodsId);
         return RespBean.success(str);
+    }
+
+
+    @RequestMapping(value = "/captcha", method = RequestMethod.GET)
+    public void verifyCode(User user, Long goodsId, HttpServletResponse response){
+        if(user == null || goodsId < 0){
+            throw new GlobalException(RespBeanEnum.REQUEST_ILLEGAL);
+        }
+        //设置请求头为输出图片的类型
+        response.setContentType("image/jpg");
+        response.setHeader("Pargam", "No-cache");
+        response.setHeader("Cache-Control", "no-cache");
+        response.setDateHeader("Expires", 0);
+        //生成验证码
+        ArithmeticCaptcha captcha = new ArithmeticCaptcha(130, 32, 3);
+        redisTemplate.opsForValue().set("captcha:" + user.getId() + ":" + goodsId, captcha.text(), 300, TimeUnit.SECONDS);
+        try {
+            captcha.out(response.getOutputStream());
+        }
+        catch (IOException e){
+//            e.printStackTrace();
+            log.error("验证码生成失败", e.getMessage());
+        }
     }
 
 

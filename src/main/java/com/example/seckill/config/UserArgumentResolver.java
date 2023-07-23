@@ -34,5 +34,8 @@ public class UserArgumentResolver implements HandlerMethodArgumentResolver {
             return null;
         }
         return userService.getUserByCookie(ticket, request, response);
+
+        // why this cannot work??? (user is null)
+//        return UserContext.getUser();
     }
 }
